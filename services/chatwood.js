@@ -25,19 +25,20 @@ console.log(e)
 
 try {
     const dataRaw = await fetch(
-        `${API_CHATWOOD}api/v1/accounts/1/conversations/20`,
+        `${API_CHATWOOD}api/v1/accounts/1/conversations/21/messages`,
         requestOption
     );
 
     if (!dataRaw.ok) {
-        throw new Error(`Error en la solicitud: ${dataRaw.statusText}`);
+        dataRaw.url
+        throw new Error(`${dataRaw.statusText}`);
     }
 
     const data = await dataRaw.json();
     return data;
 } catch (error) {
     console.error('Error durante la solicitud:', error.message);
-    // Puedes decidir qué hacer en caso de error, por ejemplo, lanzar una excepción, retornar un valor predeterminado o realizar alguna otra acción de manejo de errores.
+    // Puedes decidir quï¿½ hacer en caso de error, por ejemplo, lanzar una excepciï¿½n, retornar un valor predeterminado o realizar alguna otra acciï¿½n de manejo de errores.
 }
 
 }
