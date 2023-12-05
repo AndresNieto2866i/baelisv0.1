@@ -6,11 +6,15 @@ const router = express.Router()
 const chatWoodWook = async (req, res) => {
     const providerWs = req.providerWs;
     const body = req.body
+    if(body?.private){
+      res.send(null)
+      return
+    }
     // Imprimir el header
-    console.log('Header:', req.headers);
+    console.log('Header:',JSON.stringify(req.headers));
 
     // Imprimir el body
-    console.log('Body:', body);
+    console.log('Body:', JSON.stringify(body));
 
     // Imprimir otros detalles de la petición
     console.log('Method:', req.method);

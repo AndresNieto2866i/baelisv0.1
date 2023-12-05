@@ -5,12 +5,14 @@ const MockAdapter = require('@bot-whatsapp/database/mock')
 const ServerHttp = require('./http')
 const sendMessageChatWood = require("./services/chatwood")
 
-const flowPrincipal = addKeyword(['hola', 'ole', 'alo']).addAction(
+const flowPrincipal = addKeyword(['']).addAction(
     async(ctx, {flowDynamic}) => {
     try{
     const MESSAGE = "hi, welcome to vivemed";
     await sendMessageChatWood(MESSAGE, 'incoming');
+    console.log('mensaje')
     await flowDynamic(MESSAGE);
+    console.log('mensaje2')
     }catch(e){
     console.log(`error en app.js: ${e}`)}
 }

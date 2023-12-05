@@ -2,25 +2,25 @@
   key: {
     remoteJid: '573025880823@s.whatsapp.net',
     fromMe: false,
-    id: '539F35B14C37D5FDCBB0E33D5BE274E0',
+    id: '3EB0452DFC2F664E3478FE',
     participant: undefined
   },
-  messageTimestamp: 1701447076,
-  pushName: 'vero.py',
+  messageTimestamp: 1701810568,
+  pushName: 'Vero',
   broadcast: false,
   message: Message {
-    conversation: 'Hola',
+    conversation: 'hola',
     messageContextInfo: MessageContextInfo {
       deviceListMetadata: [DeviceListMetadata],
       deviceListMetadataVersion: 2
     }
   },
-  body: 'Hola',
+  body: 'hola',
   from: '573025880823'
 }
 [QUEUE_SE_ENVIO]:  {
-  ref: 'ans_8d428fd0-d029-4374-a289-715402b3e1a9',
-  keyword: 'key_d572a31d-64c1-446b-9861-3e99a71bc282',
+  ref: 'ans_51e4b13c-997a-4c93-b44c-eec74b1d7122',
+  keyword: 'key_ecd5ce4c-319d-4a05-a855-b7f5ba5f252e',
   answer: '__call_action__',
   options: {
     media: null,
@@ -34,5 +34,5 @@
     keyword: {},
     callback: true
   },
-  refSerialize: '79872392d06aa469687b111f66b3a999'
+  refSerialize: 'dc22c0d320257f1f4080fc72d0459f3f'
 }

@@ -7,7 +7,7 @@ class ServerHttp {
     app;
     providerWs;
     constructor(providerWs) {
-    this.providerWs = providerWs
+    this.providerWs = providerWs    
         
     }
     buildApp = () => {

@@ -16,16 +16,11 @@ try{
     var requestOption = {
         method: "POST",
         headers: myHeaders,
-        body: raw,
+        body: raw,  
     };
-}catch(e){
-console.log(e)
-}
 
-
-try {
     const dataRaw = await fetch(
-        `${API_CHATWOOD}api/v1/accounts/1/conversations/21/messages`,
+        `${API_CHATWOOD}api/v1/accounts/1/conversations/26/messages`,
         requestOption
     );
 
