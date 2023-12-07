@@ -7,23 +7,12 @@ const chatWoodWook = async (req, res) => {
     const providerWs = req.providerWs;
     const body = req.body
     if(body?.private){
+    const phone= body?.conversation?.meta?.sender?.phone_number.replace('+','')
+    console.log(phone)
       res.send(null)
       return
     }
-    // Imprimir el header
-    console.log('Header:',JSON.stringify(req.headers));
-
-    // Imprimir el body
-    console.log('Body:', JSON.stringify(body));
-
-    // Imprimir otros detalles de la petición
-    console.log('Method:', req.method);
-    console.log('URL:', req.url);
-    console.log('Params:', req.params);
-    console.log('Query:', req.query);
-    const phone= body?.conversation?.meta?.sender?.phone_number.replace('+','')
-    await providerWs.sendText(`${phone}@c.us`, body.content)
-    console.log(phone)
+    
     res.send(body)
 }
     router.post('/chatwood-hook', chatWoodWook)

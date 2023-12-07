@@ -6,19 +6,18 @@ const ServerHttp = require('./http')
 const sendMessageChatWood = require("./services/chatwood")
 
 const flowPrincipal = addKeyword(['']).addAction(
-    async(ctx, {flowDynamic}) => {
-    try{
-    const MESSAGE = "hi, welcome to vivemed";
-    await sendMessageChatWood(MESSAGE, 'incoming');
-    console.log('mensaje')
-    await flowDynamic(MESSAGE);
-    console.log('mensaje2')
-    }catch(e){
-    console.log(`error en app.js: ${e}`)}
-}
+    async (ctx, { flowDynamic }) => {
+        try {
+            const MESSAGE = "hi, welcome to vivemed";
+            await sendMessageChatWood(MESSAGE, 'incoming',ctx);
+            await flowDynamic(MESSAGE);
+        } catch (e) {
+            console.log(`error en app.js: ${e}`)
+        }
+    }
 );
 
-    
+
 const flowVentas = addKeyword('productos')
     .addAnswer(
         [
