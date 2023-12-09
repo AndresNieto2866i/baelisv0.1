@@ -1,20 +1,20 @@
 const client = require('../database/database');
-const API_CHATWOOD = "https://cwchat.full-sms.uno/";
+const {API_CHATWOOD, headers} =require('../constantes')
 
 const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
-    console.log(ctx)
+    console.log(ctx.message.conversation)
     try {
         // Consultar la base de datos para obtener información del contacto
         const contactQuery = {
             text: 'SELECT * FROM contacts WHERE phone_number = $1',
-            values: [`+${ctx.from}`]
+            values: [`+${ctx.from}`]    
         };
         let contactResult = await client.query(contactQuery);
         let contacto = contactResult.rows.length > 0 ? contactResult.rows[0] : null;
         if (!contacto) {
-            let insertQuery = {
+            let insertQuery = { 
                 text: 'INSERT INTO contacts(name, phone_number, account_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
-                values: [`+${ctx.pushName}`, `+${ctx.from}`, 1],
+                values: [`${ctx.pushName}`, `+${ctx.from}`, 1],
             };
             const result = await client.query(insertQuery);
             console.log('Se insertó correctamente:', result);
@@ -28,7 +28,7 @@ const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
 
         // Preparar el cuerpo de la solicitud para enviar a ChatWood
         let requestBody = {
-            content: msg,
+            content: ctx.message.conversation,
             message_type: message_type,
             private: true,
             content_attributes: {},
@@ -37,10 +37,7 @@ const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
         // Configurar las opciones de la solicitud HTTP
         const requestOptions = {
             method: "POST",
-            headers: {
-                "api_access_token": "HEGMKYyavrE2Zm23Z8PHgPxi",
-                "Content-Type": "application/json"
-            },
+            headers,
             body: JSON.stringify(requestBody),
         };
 
@@ -60,16 +57,12 @@ const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
                 inbox_id: "5", // Ajusta según tu necesidad
                 contact_id: contacto.id,
                 status: "open",
-                
             };
 
             // Configurar las opciones de la solicitud HTTP para crear la conversación
             const createConversationRequestOptions = {
                 method: "POST",
-                headers: {
-                    "api_access_token": "HEGMKYyavrE2Zm23Z8PHgPxi",
-                    "Content-Type": "application/json"
-                },
+                headers,
                 body: JSON.stringify(createConversationBody),
             };
 
