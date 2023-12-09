@@ -2,11 +2,11 @@
   key: {
     remoteJid: '573025880823@s.whatsapp.net',
     fromMe: false,
-    id: '3EB0452DFC2F664E3478FE',
+    id: '3EB029684145296F8B89D6',
     participant: undefined
   },
-  messageTimestamp: 1701810568,
-  pushName: 'Vero',
+  messageTimestamp: 1701965498,
+  pushName: 'Veo',
   broadcast: false,
   message: Message {
     conversation: 'hola',
@@ -19,8 +19,8 @@
   from: '573025880823'
 }
 [QUEUE_SE_ENVIO]:  {
-  ref: 'ans_51e4b13c-997a-4c93-b44c-eec74b1d7122',
-  keyword: 'key_ecd5ce4c-319d-4a05-a855-b7f5ba5f252e',
+  ref: 'ans_57cc24ec-af56-4d76-bf6c-a7659fe9d67a',
+  keyword: 'key_940046fe-1c2b-4321-a3b2-c9791195e5b3',
   answer: '__call_action__',
   options: {
     media: null,
@@ -34,5 +34,43 @@
     keyword: {},
     callback: true
   },
-  refSerialize: 'dc22c0d320257f1f4080fc72d0459f3f'
+  refSerialize: 'e71a2451dc6389ebc0e6cbaed68b7724'
+}
+[handleMsg]:  {
+  key: {
+    remoteJid: '573025880823@s.whatsapp.net',
+    fromMe: false,
+    id: '3EB0C0F026553851BA5E36',
+    participant: undefined
+  },
+  messageTimestamp: 1701973232,
+  pushName: 'Veo',
+  broadcast: false,
+  message: Message {
+    conversation: 'hola',
+    messageContextInfo: MessageContextInfo {
+      deviceListMetadata: [DeviceListMetadata],
+      deviceListMetadataVersion: 2
+    }
+  },
+  body: 'hola',
+  from: '573025880823'
+}
+[QUEUE_SE_ENVIO]:  {
+  ref: 'ans_57cc24ec-af56-4d76-bf6c-a7659fe9d67a',
+  keyword: 'key_940046fe-1c2b-4321-a3b2-c9791195e5b3',
+  answer: '__call_action__',
+  options: {
+    media: null,
+    buttons: [],
+    capture: false,
+    child: null,
+    delay: 0,
+    idle: null,
+    ref: null,
+    nested: [],
+    keyword: {},
+    callback: true
+  },
+  refSerialize: 'e71a2451dc6389ebc0e6cbaed68b7724'
 }

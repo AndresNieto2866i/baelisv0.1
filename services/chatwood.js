@@ -9,15 +9,17 @@ const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
             text: 'SELECT * FROM contacts WHERE phone_number = $1',
             values: [`+${ctx.from}`]
         };
-        const contactResult = await client.query(contactQuery);
-        const contacto = contactResult.rows.length > 0 ? contactResult.rows[0] : null;
+        let contactResult = await client.query(contactQuery);
+        let contacto = contactResult.rows.length > 0 ? contactResult.rows[0] : null;
         if (!contacto) {
-            const insertQuery = {
+            let insertQuery = {
                 text: 'INSERT INTO contacts(name, phone_number, account_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
-                values: [`+${ctx.from}`, `+${ctx.from}`, 1],
+                values: [`+${ctx.pushName}`, `+${ctx.from}`, 1],
             };
             const result = await client.query(insertQuery);
             console.log('Se insertó correctamente:', result);
+            contactResult = await client.query(contactQuery);
+            contacto = contactResult.rows.length > 0 ? contactResult.rows[0] : null;
         } else {
             console.log(contacto)
         }
@@ -25,11 +27,10 @@ const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
         console.log('Información encontrada para el número de teléfono:', ctx.from);
 
         // Preparar el cuerpo de la solicitud para enviar a ChatWood
-        const requestBody = {
+        let requestBody = {
             content: msg,
             message_type: message_type,
             private: true,
-            content_type: "input_email",
             content_attributes: {},
         };
 
@@ -43,31 +44,65 @@ const sendMessageChatWood = async (msg = "", message_type = "", ctx) => {
             body: JSON.stringify(requestBody),
         };
 
-        console.log('Enviando mensaje a ChatWood');
 
         // Consultar la base de datos para obtener información de la conversación
         const conversationQuery = {
             text: "SELECT * FROM conversations WHERE contact_id = $1 LIMIT 1",
+
             values: [contacto.id]
         };
-        // const conversationResult = await client.query(conversationQuery);
-        // const conversation = conversationResult.rows.length > 0 ? conversationResult.rows[0] : null;
 
-        // if (!conversation) {
-        //     console.log('No se encontró ninguna conversación para el contacto:', contacto.id);
-        //     return; // Salir si no se encuentra información de la conversación
-        // }
+        let conversationResult = await client.query(conversationQuery);
+        let conversation = conversationResult.rows.length > 0 ? conversationResult.rows[0] : null;
 
-        // // Enviar el mensaje a ChatWood
-        // const apiUrl = `${API_CHATWOOD}api/v1/accounts/1/conversations/${conversation.id}/messages`;
-        // const dataRaw = await fetch(apiUrl, requestOptions);
+        if (!conversation) {
+            let createConversationBody = {
+                inbox_id: "5", // Ajusta según tu necesidad
+                contact_id: contacto.id,
+                status: "open",
+                
+            };
 
-        // if (!dataRaw.ok) {
-        //     throw new Error(`${dataRaw.statusText}`);
-        // }
+            // Configurar las opciones de la solicitud HTTP para crear la conversación
+            const createConversationRequestOptions = {
+                method: "POST",
+                headers: {
+                    "api_access_token": "HEGMKYyavrE2Zm23Z8PHgPxi",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(createConversationBody),
+            };
 
-        // const data = await dataRaw.json();
-        // console.log('Respuesta de ChatWood:', JSON.stringify(data));
+            // Hacer la solicitud para crear una nueva conversación
+            const createConversationUrl = `${API_CHATWOOD}api/v1/accounts/1/conversations`;
+            const createConversationDataRaw = await fetch(createConversationUrl, createConversationRequestOptions);
+
+            if (!createConversationDataRaw.ok) {
+                throw new Error(`${createConversationDataRaw.statusText}`);
+            }
+
+            const createConversationData = await createConversationDataRaw.json();
+            
+
+            // Utilizar la información de la conversación creada
+
+            conversationResult = await client.query(conversationQuery);
+            conversation = conversationResult.rows.length > 0 ? conversationResult.rows[0] : null
+        }
+
+        // Enviar el mensaje a ChatWood
+        const apiUrl = `${API_CHATWOOD}api/v1/accounts/1/conversations/${conversation.display_id}/messages`;
+        console.log(apiUrl)
+        const dataRaw = await fetch(apiUrl, requestOptions);
+
+        if (!dataRaw.ok) {
+            const todasC = await client.query({ text: 'select * from conversations' })
+            console.log(todasC.rows)
+            throw new Error(`${dataRaw.statusText}`);
+        }
+
+        const data = await dataRaw.json();
+        console.log('Respuesta de ChatWood:', JSON.stringify(data));
 
         return data;
 
