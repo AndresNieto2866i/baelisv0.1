@@ -6,14 +6,13 @@ const router = express.Router()
 const chatWoodWook = async (req, res) => {
   const providerWs = req.providerWs;
   const body = req.body
-  console.log('mensaje a recibir')
-  console.log(body) 
-  if (body?.private) {
+  console.log(body)
+  if (body.private) {
     res.send(null)
     return
   }
-  
   const phone = body?.conversation?.meta?.sender?.phone_number.replace('+', '')
+  console.log(phone)
   await providerWs.sendText(`${phone}@c.us`, body.content)
   res.send(body)
 }

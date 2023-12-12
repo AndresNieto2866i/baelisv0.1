@@ -7,20 +7,20 @@ class ServerHttp {
     app;
     providerWs;
     constructor(providerWs) {
-    this.providerWs = providerWs    
-        
+        this.providerWs = providerWs
+
     }
     buildApp = () => {
         this.app = express()
-        .use(express.json())
-        .use((req, _, next) => {
-        req.providerWs = this.providerWs
-        next()
-        })
-        .use(routes)
-        .listen(this.port, () =>console.log(`http://localhost:${this.port}`))
+            .use(express.json())
+            .use((req, _, next) => {
+                req.providerWs = this.providerWs
+                next()
+            })
+            .use(routes)
+            .listen(this.port, () => console.log(`http://localhost:${this.port}`))
     }
-    start(){
+    start() {
         this.buildApp()
     }
 }

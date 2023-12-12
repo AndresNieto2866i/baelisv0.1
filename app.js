@@ -1,42 +1,77 @@
 const { createBot, createProvider, createFlow, addKeyword } = require('@bot-whatsapp/bot')
-const QRPortalWeb = require('@bot-whatsapp/portal')
 const BaileysProvider = require('@bot-whatsapp/provider/baileys')
 const MockAdapter = require('@bot-whatsapp/database/mock')
 const ServerHttp = require('./http')
-const sendMessageChatWood = require("./services/chatwood")
+const { sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact } = require("./services/chatwood")
+
+const client = require('./database/database');
+
 
 const flowPrincipal = addKeyword(['']).addAction(
     async (ctx, { flowDynamic }) => {
         try {
+            const contactInfo = await getContactInfo(ctx.from) || (await createContact(ctx));
+            const account = await getOrCreateConversation(contactInfo.id);
+            let requestBody = {
+                content: ctx.message.content,
+                message_type: "incoming",
+                private: true,
+                content_attributes: {},
+            };
+            await sendMessageToChatWood(account.display_id, requestBody);
             const MESSAGE = "hi, welcome to vivemed";
-            await sendMessageChatWood(MESSAGE, 'incoming',ctx);
-            await flowDynamic(MESSAGE);
+            async function obtenerMensajes() {
+                const mensajesQuery = await client.query(`
+                 SELECT * 
+                 FROM messages 
+                 WHERE content = '${MESSAGE}' 
+                 AND account_id = 1 
+                 AND inbox_id = 5
+                 AND conversation_id = ${account.id};
+             `)
+                const mensajes = mensajesQuery.rows;
+                return mensajes[0]
+
+            }
+            let { mensajeEnviar, message_type: messageType } = await prepareMessage(MESSAGE, ctx, account);
+            console.log(mensajeEnviar, messageType);
+
+            let mensaje = await obtenerMensajes();
+            if (!mensaje) {
+                await flowDynamic(MESSAGE);
+                 requestBody = {
+                    content: mensajeEnviar,
+                    message_type: messageType,
+                    private: true,
+                    content_attributes: {},
+                };
+                await sendMessageToChatWood(account.display_id, requestBody);
+                mensaje = await obtenerMensajes();
+            }
+
+            // Reassign values
+            ({ mensajeEnviar, message_type: messageType } = await prepareMessage(MESSAGE, ctx, account));
+            
+            const currentDate = new Date()
+            const horasDiferencia = (currentDate - mensaje.created_at) / (1000 * 60 * 60);
+
+            if (horasDiferencia >= 24) {
+                await flowDynamic(MESSAGE);
+            }
+
+             requestBody = {
+                content: mensajeEnviar,
+                message_type: messageType,
+                private: true,
+                content_attributes: {},
+            };
+            console.log(requestBody)
+            await sendMessageToChatWood(account.display_id, requestBody);
         } catch (e) {
             console.log(`error en app.js: ${e}`)
         }
     }
 );
-
-
-const flowVentas = addKeyword('productos')
-    .addAnswer(
-        [
-            'te comparto los siguientes productos de interes ',
-            '👉 articulo 1',
-            '👉 articulo 2  ',
-            '👉 articulo 3',
-
-        ],
-    )
-    .addAnswer('🙌 Hola bienvenido a este *Chatbot*')
-    .addAnswer(
-        [
-            'te comparto los siguientes links de interes sobre el proyecto',
-            '👉 *doc* para ver la documentación',
-            '👉 *gracias*  para ver la lista de videos',
-            '👉 *discord* unirte al discord',
-        ],
-    )
 
 const main = async () => {
     const adapterDB = new MockAdapter()
@@ -49,7 +84,6 @@ const main = async () => {
         database: adapterDB,
     })
 
-    QRPortalWeb()
     const server = new ServerHttp(adapterProvider);
     server.start()
 }
