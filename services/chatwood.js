@@ -26,36 +26,8 @@ const prepareMessage = async (msg, ctx, conversation_id) => {
     let message_type = '';
 
     try {
-        if (msg === 'hi, welcome to vivemed') {
-            const mensajesQuery = await client.query(`
-                SELECT * 
-                FROM messages 
-                WHERE content = '${msg}' 
-                AND account_id = 1 
-                AND inbox_id = 5
-                AND conversation_id = ${conversation_id.id}
-            `);
-
-            const mensajes = mensajesQuery.rows;
-            if (mensajes.length === 0) {
-                mensajeEnviar = msg;
-                message_type = 'outgoing';
-
-            } else {
-                const mensaje = mensajes[0]
-                const currentDate = new Date()
-                const horasDiferencia = (currentDate - mensaje.created_at) / (1000 * 60 * 60);
-
-                if (horasDiferencia >= 24) {
-                    mensajeEnviar = msg;
-                    message_type = 'outgoing';
-                } else {
-                    mensajeEnviar = ctx.message.conversation
-                    message_type = 'incoming'
-                }
-            }
-        }
-
+        mensajeEnviar = ctx.message.conversation
+        message_type = 'incoming'
         return { mensajeEnviar, message_type };
     } catch (error) {
         console.error('Error en prepareMessage:', error);
@@ -97,6 +69,7 @@ const getOrCreateConversation = async (contactId) => {
 };
 
 const sendMessageToChatWood = async (conversationId, requestBody) => {
+    console.log('enviando mensaje')
     const apiUrl = `${API_CHATWOOD}api/v1/accounts/1/conversations/${conversationId}/messages`;
     const requestOptions = {
         method: 'POST',
@@ -104,15 +77,21 @@ const sendMessageToChatWood = async (conversationId, requestBody) => {
         body: JSON.stringify(requestBody),
     };
 
-    const dataRaw = await fetch(apiUrl, requestOptions);
+    try {
+        const dataRaw = await fetch(apiUrl, requestOptions);
+        if (!dataRaw.ok) {
+            const todasC = await client.query({ text: 'select * from conversations' });
+            throw new Error(`${dataRaw.statusText}`);
+        }
 
-    if (!dataRaw.ok) {
-        const todasC = await client.query({ text: 'select * from conversations' });
-        throw new Error(`${dataRaw.statusText}`);
+        return await dataRaw.json();
+    } catch (error) {
+        // Aquí manejas el error de la manera que desees
+        console.error('Error en sendMessageToChatWood:', error.message);
+        throw error; // Puedes volver a lanzar el error si es necesario
     }
-
-    return await dataRaw.json();
 };
+
 
 const sendMessageChatWood = async (msg = '', ctx) => {
     try {
@@ -134,4 +113,4 @@ const sendMessageChatWood = async (msg = '', ctx) => {
     }
 };
 
-module.exports = {sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact};
+module.exports = { sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact };
