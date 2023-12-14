@@ -1,2 +1,14 @@
 node_modules/
 bot_sessions/
+auth_info_baileys/
+# Ignorar archivos de imagen
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+*.ico
+
+# Ignorar archivos de registro
+*.log
