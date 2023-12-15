@@ -11,22 +11,22 @@ const getContactInfo = async (phoneNumber) => {
     return contactResult.rows.length > 0 ? contactResult.rows[0] : null;
 };
 
-const createContact = async (ctx) => {
+const createContact = async (pushName, from) => {
     const insertQuery = {
         text: 'INSERT INTO contacts(name, phone_number, account_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
-        values: [`${ctx.pushName}`, `+${ctx.from}`, 1],
+        values: [`${pushName}`, `+${from}`, 1],
     };
 
     const result = await client.query(insertQuery);
-    const contactInfo = await getContactInfo(ctx.from);
+    const contactInfo = await getContactInfo(from);
     return contactInfo;
 };
-const prepareMessage = async (msg, ctx, conversation_id) => {
+const prepareMessage = async (text) => {
     let mensajeEnviar = '';
     let message_type = '';
 
     try {
-        mensajeEnviar = ctx.message.conversation
+        mensajeEnviar = text
         message_type = 'incoming'
         return { mensajeEnviar, message_type };
     } catch (error) {

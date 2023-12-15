@@ -1,167 +1,60 @@
-// const { createBot, createProvider, createFlow, addKeyword } = require('@bot-whatsapp/bot')
-// const BaileysProvider = require('@bot-whatsapp/provider/baileys')
-// const MockAdapter = require('@bot-whatsapp/database/mock')
-// const ServerHttp = require('./http')
-// const { sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact } = require("./services/chatwood")
+const fs = require('fs');
+const express = require('express');
+const WhatsAppConnection = require('./WhatsAppConnection/WhatsAppConnection')
 
-// const client = require('./database/database');
+const port = 20000;
+const app = express();
+app.use(express.json());
 
+const jsonFilePath = 'carpetas.json';
 
-// const flowPrincipal = addKeyword(['']).addAction(
-//     async (ctx, { flowDynamic }) => {
-//         try {
-//             const contactInfo = await getContactInfo(ctx.from) || (await createContact(ctx));
-//             const account = await getOrCreateConversation(contactInfo.id);
-//             let requestBody = {
-//                 content: ctx.message.conversation,
-//                 message_type: "incoming",
-//                 private: true,
-//                 content_attributes: {},
-//             };
-//             console.log(requestBody)
-//             await sendMessageToChatWood(account.display_id, requestBody);
-//             // const MESSAGE = "hi, welcome to vivemed";
-//             // async function obtenerMensajes() {
-//             //     const mensajesQuery = await client.query(`
-//             //      SELECT * 
-//             //      FROM messages 
-//             //      WHERE content = '${MESSAGE}' 
-//             //      AND account_id = 1 
-//             //      AND inbox_id = 5
-//             //      AND conversation_id = ${account.id};
-//             //  `)
-//             //     const mensajes = mensajesQuery.rows;
-//             //     return mensajes[0]
-
-//             // }
-//             // let { mensajeEnviar, message_type: messageType } = await prepareMessage(MESSAGE, ctx, account);
-//             // console.log(mensajeEnviar, messageType);
-
-//             // let mensaje = await obtenerMensajes();
-//             // if (!mensaje) {
-//             //     await flowDynamic(MESSAGE);
-//             //      requestBody = {
-//             //         content: mensajeEnviar,
-//             //         message_type: messageType,
-//             //         private: true,
-//             //         content_attributes: {},
-//             //     };
-//             //     await sendMessageToChatWood(account.display_id, requestBody);
-//             //     mensaje = await obtenerMensajes();
-//             // }
-
-//             // Reassign values
-//             // ({ mensajeEnviar, message_type: messageType } = await prepareMessage(MESSAGE, ctx, account));
-
-//             // const currentDate = new Date()
-//             // const horasDiferencia = (currentDate - mensaje.created_at) / (1000 * 60 * 60);
-
-//             // if (horasDiferencia >= 24) {
-//             //     await flowDynamic(MESSAGE);
-//             // }
-
-//             //  requestBody = {
-//             //     content: mensajeEnviar,
-//             //     message_type: messageType,
-//             //     private: true,
-//             //     content_attributes: {},
-//             // };
-//             // console.log(requestBody)
-//             // await sendMessageToChatWood(account.display_id, requestBody);
-//         } catch (e) {
-//             console.log(`error en app.js: ${e}`)
-//         }
-//     }
-// );
-
-// const main = async () => {
-//     const adapterDB = new MockAdapter()
-//     const adapterFlow = createFlow([flowPrincipal])
-//     const adapterProvider = createProvider(BaileysProvider)
-
-//     await createBot({
-//         flow: adapterFlow,
-//         provider: adapterProvider,
-//         database: adapterDB,
-//     })
-
-//     const server = new ServerHttp(adapterProvider);
-//     server.start()
-// }
-
-// main()
-
-const fs = require('fs')
-const ServerHttp = require('./http')
-const { sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact } = require("./services/chatwood")
-
-const qrcode = require('qrcode');
-const {
-  DisconnectReason,
-  useMultiFileAuthState,
-} = require("@whiskeysockets/baileys");
-const makeWASocket = require("@whiskeysockets/baileys").default;
-
-async function saveQRCode(qrData) {
-  try {
-      // Generar el código QR como una cadena de datos
-      const qrCodeDataUrl = await qrcode.toDataURL(qrData, { errorCorrectionLevel: 'H' });
-
-      // Extraer la parte de datos de la URL
-      const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
-
-      // Escribir los datos en el archivo qr.png
-      fs.writeFileSync('qr.png', base64Data, 'base64');
-
-      console.log('Código QR guardado en qr.png');
-  } catch (error) {
-      console.error('Error al guardar el código QR:', error);
-  }
-}
-async function connectionLogic() {
-    const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
-    const sock = makeWASocket({
-        printQRInTerminal: true,
-        auth: state,
-    });
-
-    sock.ev.on("connection.update", async (update) => {
-      const { connection, lastDisconnect, qr } = update || {};
-
-      if (qr) {
-          // Guardar el código QR en un archivo llamado qr.png
-          await saveQRCode(qr);
-      }
-
-      if (connection === "close") {
-          const shouldReconnect =
-              lastDisconnect?.error?.output?.statusCode !==
-              DisconnectReason.loggedOut;
-
-          if (shouldReconnect) {
-              connectionLogic();
-          }
-      }
-  });
-
-    sock.ev.on("messages.upsert", (messageInfoUpsert) => {
-        console.log("=======");
-        console.log("message upsert");
-        console.log(JSON.stringify(messageInfoUpsert));
-        console.log(messageInfoUpsert.messages.map((m) => {
-            console.log(m.message.conversation);
-            if (!m.key.fromMe) {
-
-            }
-        }));
-        console.log("=======");
-    });
-
-    sock.ev.on("creds.update", saveCreds);
-
-    // Utilizar sock como providerWs
-    const server = new ServerHttp(sock);
-    server.start();
+// Verificar si el archivo JSON existe, si no existe, inicializarlo con un array vacío
+if (!fs.existsSync(jsonFilePath)) {
+    fs.writeFileSync(jsonFilePath, '[]', 'utf-8');
 }
 
-connectionLogic();
+app.post('/createCarpet', async (req, res) => {
+    try {
+        const carpeta = req.body.carpeta;
+
+        // Leer el contenido actual del archivo JSON
+        const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8'));
+
+        // Añadir la nueva carpeta al array
+        jsonData.push({ carpeta });
+
+        // Escribir el nuevo contenido en el archivo JSON
+        fs.writeFileSync(jsonFilePath, JSON.stringify(jsonData, null, 2), 'utf-8');
+
+        res.json(`Creada: ${carpeta}`);
+    } catch (error) {
+        console.error('Error al procesar la solicitud:', error);
+        res.status(500).json('Error interno del servidor');
+    }
+});
+app.get('/run', (req, res) => {
+    try {
+        const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, 'utf-8'));
+        console.log(jsonData);
+
+        jsonData.forEach((carpeta) => {
+            console.log(carpeta.carpeta);
+            const conexion = new WhatsAppConnection(carpeta.carpeta);
+            conexion.start();
+        });
+
+        // Agregar un mensaje de éxito en la respuesta al cliente
+        const lista = JSON.parse(fs.readFileSync('lista_servidores.json', 'utf-8'));
+        res.status(200).json({ message: 'Operación exitosa. El proceso está en ejecución.', servidores:lista });
+
+    } catch (error) {
+        console.error('Error al procesar la solicitud:', error);
+        // Manejar el error de manera apropiada, posiblemente enviando un código de estado 500 al cliente.
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+
+app.listen(port, () => {
+    console.log(`Servidor escuchando en el puerto ${port}`);
+});

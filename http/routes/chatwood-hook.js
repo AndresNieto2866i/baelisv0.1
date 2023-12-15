@@ -10,10 +10,19 @@ const chatWoodWook = async (req, res) => {
     res.send(null)
     return
   }
-  const phone = body?.conversation?.meta?.sender?.phone_number.replace('+', '')
-  console.log(phone)
-  await providerWs.sendText(`${phone}@c.us`, body.content)
-  res.send(body)
+  const phone = (body?.conversation?.meta?.sender?.phone_number || '').replace('+', '');
+
+  try {
+    // Asegúrate de que el método sendMessage sea asincrónico
+    if (body.content) {
+
+      await providerWs.sendMessage(`${phone}@c.us`, { text: body.content });
+      res.send(body);
+    }
+  } catch (error) {
+    console.error('Error al enviar el mensaje:', error);
+    res.status(500).send('Error al enviar el mensaje');
+  }
 }
 router.post('/chatwood-hook', chatWoodWook)
 router.get("/get-qr", async (_, res) => {

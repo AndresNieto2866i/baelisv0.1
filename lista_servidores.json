@@ -1,0 +1,10 @@
+[
+  {
+    "carpeta": "carpeta",
+    "url": "http://localhost:30001"
+  },
+  {
+    "carpeta": "hola",
+    "url": "http://localhost:30000"
+  }
+]
