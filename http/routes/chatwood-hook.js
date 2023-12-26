@@ -1,5 +1,4 @@
-const { createReadStream } = require('fs')
-const { join } = require('path')
+
 const express = require('express')
 const router = express.Router()
 
@@ -9,29 +8,37 @@ const chatWoodWook = async (req, res) => {
   if (body.private) {
     res.send(null)
     return
-  }
-  const phone = (body?.conversation?.meta?.sender?.phone_number || '').replace('+', '');
+  };
 
   try {
-    // Asegúrate de que el método sendMessage sea asincrónico
-    if (body.content) {
+    if (body && body.conversation && body.conversation.meta && body.conversation.meta.sender) {
+      const phone = (body.conversation.meta.sender.phone_number || '').replace('+', '');
 
-      await providerWs.sendMessage(`${phone}@c.us`, { text: body.content });
-      res.send(body);
+      if (body.content) {
+        console.log(phone, body.content);
+        await providerWs.sendMessage(`${phone}@c.us`, { text: body.content });
+        console.log('visitando');
+        res.send(body);
+      }
+    } else {
+      console.error('Error al enviar el mensaje: Estructura de objeto no válida');
+      res.status(400).send('Estructura de objeto no válida');
     }
   } catch (error) {
     console.error('Error al enviar el mensaje:', error);
+    console.log(JSON.stringify(providerWs))
     res.status(500).send('Error al enviar el mensaje');
   }
 }
 router.post('/chatwood-hook', chatWoodWook)
-router.get("/get-qr", async (_, res) => {
-  const YOUR_PATH_QR = join(process.cwd(), `qr.png`);
-  const fileStream = createReadStream(YOUR_PATH_QR);
-  console.log(YOUR_PATH_QR)
 
-  res.writeHead(200, { "Content-Type": "image/png" });
-  fileStream.pipe(res);
-});
+router.get('/',(req, res)=>{
+  try{
+    console.log('server response')
+  res.json({message:"hola"})
+  }catch(e){
+    console.log(e)
+  }
+})
 
 module.exports = router 

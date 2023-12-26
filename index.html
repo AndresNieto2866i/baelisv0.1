@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport">
+    <title>Document</title>
+</head>
+
+<body>
+    <button onclick="runPhones()">abrir</button>
+    <button onclick="stopPhones()">cerrar</button>
+    <div>
+        <form id="createForm">
+            <label for="carpeta">
+                carpeta:
+                <input type="text" id="carpeta" name="carpeta">
+            </label>
+            <label for="puerto">
+                puerto:
+                <input type="number" id="puerto" name="puerto" min="0" pattern="\d+">
+            </label>
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="errorMessage" style="color: red;"></div>
+    </div>
+    <div class="elementos"></div>
+    <div id="qrlist" style="display: inline;"></div>
+
+
+</body>     
+
+<script>
+    let qrList = [];
+    let listaServer = document.getElementsByClassName('elementos')[0]
+    async function getData() {
+        fetch('/servers')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                data.forEach(m => {
+                    console.log(m)
+                    let nombre = m.carpeta;
+                    let puerto = m.puerto;
+    
+                    // Crear un elemento de lista (li) para cada elemento en data
+                    let listItem = document.createElement('li');
+                    listItem.textContent = `Nombre: ${nombre}, Puerto: ${puerto}`;
+    
+                    // Agregar el elemento de lista al elemento ul
+                    listaServer.appendChild(listItem);
+                });
+            })
+            .catch(error => {
+                console.error('Error al obtener datos:', error);
+            });
+    }
+    // Realiza la solicitud fetch y maneja la respuesta
+    function getqr(){
+        fetch('/files')
+        .then(response => response.json())
+        .then(data => {
+            console.log('files')
+            if (data && data.archivos) {
+                qrList = data.archivos;
+
+                // Recorre la lista de imágenes y muestra cada una
+                const qrlistElement = document.getElementById('qrlist');
+                // Recorre la lista de imágenes y crea un contenedor para cada una
+                qrList.forEach(item => {
+                    const container = document.createElement('div');
+
+                    // Crea un elemento de imagen y asigna la fuente
+                    const imgElement = document.createElement('img');
+                    imgElement.src = `data:image/png;base64,${item.data}`; // Ajusta el tipo según el formato de la imagen
+
+                    // Crea un elemento de texto para el nombre
+                    const nameElement = document.createElement('p');
+                    nameElement.textContent = item.name;
+
+                    // Agrega la imagen y el nombre al contenedor
+                    container.appendChild(imgElement);
+                    container.appendChild(nameElement);
+
+                    // Agrega el contenedor al elemento principal
+                    qrlistElement.appendChild(container);
+                });
+            } else {
+                console.error('La respuesta no contiene archivos.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+
+    }
+    getqr()
+    async function runPhones() {
+        try {
+            const data = await fetch('/run')
+                .then(response => response.json())
+                .then(result => {
+                    console.log(result.estado);
+                });
+
+                await getData()
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    async function stopPhones() {
+        try {
+            const data = await fetch('/stop')
+                .then(response => response.json())
+                .then(result => {
+                    console.log(result.estado);
+                });
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    document.getElementById('createForm').addEventListener('submit', async function (event) {
+        try {
+            event.preventDefault(); // Evita que el formulario se envíe normalmente
+    
+            // Obtén los valores de los campos de entrada
+            const carpeta = document.getElementById('carpeta').value;
+            const puerto = document.getElementById('puerto').value;
+            
+            const requestBody = {
+                carpeta,
+                puerto
+            } 
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Indica que el cuerpo de la solicitud es JSON
+                },
+                body: JSON.stringify(requestBody) // Convierte el objeto a una cadena JSON
+            };
+    
+            // Realiza la solicitud fetch
+            const response = await fetch('/createCarpet', options);
+    
+            // Verifica el estado de la respuesta
+            if (!response.ok) {
+                // Si la respuesta no es exitosa, verifica si es un error 400
+                if (response.status === 400) {
+                    // Manejar específicamente el error 400 (Bad Request)
+                    const responseBody = await response.json();
+                    console.error('Error en la solicitud fetch:', responseBody  );
+                    // Muestra el mensaje de error debajo del formulario
+                    document.getElementById('errorMessage').textContent = `Error: ${responseBody}`;
+                } else {
+                    // Si no es un error 400, lanza un error general
+                    throw new Error(`Error en la solicitud: ${response}`);
+                }
+            } else {
+                // Limpiar el mensaje de error si la solicitud fue exitosa
+                document.getElementById('errorMessage').textContent = 'se creó con exito, para mostrar el qr abre el canal';
+                getqr()
+            }
+    
+            // Hacer algo con los valores, por ejemplo, enviarlos a través de una solicitud AJAX
+        } catch (error) {
+            console.error('Error en la solicitud fetch:', error.message);
+        }
+    });
+    
+    
+</script>
+
+
+</html>

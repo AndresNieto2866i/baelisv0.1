@@ -1,6 +1,33 @@
 const client = require('../database/database');
 const { API_CHATWOOD, headers } = require('../constantes');
 
+const getInbox = async (name) => {
+    try {
+        let url = `${API_CHATWOOD}api/v1/accounts/1/inboxes`;
+        const inboxesResponse = await fetch(url, { headers });
+
+        if (!inboxesResponse.ok) {
+            throw new Error(`Error fetching inboxes: ${inboxesResponse.statusText}`);
+        }
+
+        const inboxesData = await inboxesResponse.json();
+
+        // Filtrar los inboxes basados en el nombre
+        const filteredInbox = inboxesData.payload.find((inbox) => {
+            return inbox.name === name;
+        });
+
+        if (filteredInbox) {
+            return filteredInbox;
+        } else {
+            console.log("Ningún inbox encontrado para el nombre:", name);
+        }
+    } catch (error) {
+        console.error("Error en getInbox:", error.message);
+    }
+};
+  
+  
 const getContactInfo = async (phoneNumber) => {
     const contactQuery = {
         text: 'SELECT * FROM contacts WHERE phone_number = $1',
@@ -35,8 +62,8 @@ const prepareMessage = async (text) => {
     }
 };
 
-
-const getOrCreateConversation = async (contactId) => {
+const getOrCreateConversation = async (contactId,puerto) => {
+    const inbox_id = await getInbox(puerto)
     const conversationQuery = {
         text: 'SELECT * FROM conversations WHERE contact_id = $1 LIMIT 1',
         values: [contactId],
@@ -46,7 +73,7 @@ const getOrCreateConversation = async (contactId) => {
     const conversation = conversationResult.rows.length > 0 ? conversationResult.rows[0] : null;
     if (!conversation) {
         const createConversationBody = {
-            inbox_id: '5', // Adjust as needed
+            inbox_id:inbox_id.channel_id,
             contact_id: contactId,
             status: 'open',
         };
@@ -69,7 +96,6 @@ const getOrCreateConversation = async (contactId) => {
 };
 
 const sendMessageToChatWood = async (conversationId, requestBody) => {
-    console.log('enviando mensaje')
     const apiUrl = `${API_CHATWOOD}api/v1/accounts/1/conversations/${conversationId}/messages`;
     const requestOptions = {
         method: 'POST',

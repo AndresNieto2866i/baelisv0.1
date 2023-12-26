@@ -12,7 +12,7 @@ const { Client } = require('pg');
 // Conectar a la base de datos y realizar una consulta de prueba
 client.connect()
   .then(() => {
-    console.log('Conexi�n exitosa a la base de datos');
+    console.log('Conexion exitosa a la base de datos');
 
     // Consulta para obtener la versi�n del servidor PostgreSQL
     return client.query('SELECT version()');

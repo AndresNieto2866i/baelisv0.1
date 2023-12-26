@@ -7,42 +7,27 @@ node .
 
 ## crear una sesion
 
-- generar un metodo post a 144.90.81.211:20000/createCarpet
+- ingresar 144.91.80.211:20000
+- llenar y enviar formulario
 
-```json
-body:
-{
-    "carpeta":"<nombre de la sesion a crear>"
-}
-```
+## generar qr
+
+presionar abrir a  su vez correra las sesiones activas
 
 ## inicializar todas las sesiones
 
-GET 144.90.81.211:20000/run esto pondrá en marcha todas las sesiones.
+ingresar a 144.91.80.211:20000/
 
-y devolverá un json con las url,
-ejemplo:
+presionar abrir
 
-```json
-{
-    "message": "Operación exitosa. El proceso está en ejecución.",
-    "servidores": [
-        {
-            "carpeta": "nombre",
-            "url": "http://localhost:30000"
-        },
-        {
-            "carpeta": "nombre",
-            "url": "http://localhost:30001"
-        }
-    ]
-}
-```
 
-visitas la direccion de cada sesion /get-qr para escanear.
+## registrar agente en chatwoot
 
-eso inicia una sesion
+luego tomas el puerto registrado
 
-copias la url para generar una bandeja de entrada en chatwoot.
+vas a la seccion de integraciones de chatwoot
 
-y a testear
+colocar un nuevo web hook con la siguiente url `144.91.90.211:<puerto>/chatwood-hook`
+
+creas una nueva bandeja de entrada y podrás probar la aplicacion.
+
