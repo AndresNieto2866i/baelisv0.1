@@ -1,9 +1,5 @@
 [
   {
-    "carpeta": "vivemed",
-    "puerto": "30001"
-  },
-  {
     "carpeta": "reina",
     "puerto": "30002"
   }

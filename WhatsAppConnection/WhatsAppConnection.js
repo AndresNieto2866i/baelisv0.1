@@ -64,20 +64,22 @@ module.exports = class WhatsAppConnection {
                 await Promise.all(messageInfoUpsert.messages.map(async (m) => {
                     if (!m.key.fromMe) {
                         const telefonoEnvia = m.key.remoteJid.split('@')[0]
+                        if (telefonoEnvia == 'status') {
+                            return
+                        }
                         const pushName = m.pushName
                         const contactInfo = await getContactInfo(telefonoEnvia) || (await createContact(pushName, telefonoEnvia));
                         const account = await getOrCreateConversation(contactInfo.id, this.carpeta)
-                        // console.log(account)
+
 
                         let mensaje = ''
                         if (m.message.extendedTextMessage && m.message.extendedTextMessage.text) {
                             mensaje = m.message.extendedTextMessage.text;
 
                         } else if (m.message.conversation) {
-                            console.log('Es una conversación');
                             mensaje = m.message.conversation
                         } else if (m.message.extendedTextMessage) {
-                            
+
                         } else if (m.message.audioMessage) {
                             mensaje = 'es un audio, no es posible transcribir'
                         } else {
@@ -89,19 +91,17 @@ module.exports = class WhatsAppConnection {
                             private: true,
                             content_attributes: {},
                         };
-
                         await sendMessageToChatWood(account.display_id, requestBody, this.puerto);
                     } else {
+                        console.log('mensaje:', m)
                         const telefonoEnvia = m.key.remoteJid.split('@')[0]
-
+                        const pushName = m.pushName
                         const contactInfo = await getContactInfo(telefonoEnvia) || (await createContact(pushName, telefonoEnvia));
                         const account = await getOrCreateConversation(contactInfo.id, this.carpeta)
                         let mensaje = ''
                         if (m.message.extendedTextMessage && m.message.extendedTextMessage.text) {
-                            mensaje = m.message.extendedTextMessage.text;
-
+                            mensaje = m.message.extendedTextMessage.text
                         } else if (m.message.conversation) {
-                            console.log('Es una conversación');
                             mensaje = m.message.conversation
                         } else if (m.message.extendedTextMessage) {
 
@@ -112,7 +112,7 @@ module.exports = class WhatsAppConnection {
                         let requestBody = {
                             content: mensaje,
                             message_type: "outgoing",
-                            private: true,
+                            private: false,
                             content_attributes: {}
                         }
                         await sendMessageToChatWood(account.display_id, requestBody, this.puerto);
@@ -121,7 +121,6 @@ module.exports = class WhatsAppConnection {
                     }
                 }));
             } catch (error) {
-                console.log(messageInfoUpsert.messages[0])
                 console.error("Error:", error);
                 // Puedes manejar el error de la manera que desees, por ejemplo, registrándolo, enviando una respuesta específica, etc.
             }
