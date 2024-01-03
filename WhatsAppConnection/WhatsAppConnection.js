@@ -4,7 +4,7 @@ const makeWASocket = require("@whiskeysockets/baileys").default;
 const ServerHttp = require('../http');
 const { DisconnectReason, useMultiFileAuthState,
 } = require("@whiskeysockets/baileys");
-const { sendMessageToChatWood, getOrCreateConversation, getContactInfo, createContact } = require("../services/chatwood");
+const { sendMessageToChatWood, getOrCreateConversation, getContactInfo, createContact, getMessage } = require("../services/chatwood");
 const { json } = require('stream/consumers');
 
 module.exports = class WhatsAppConnection {
@@ -71,7 +71,6 @@ module.exports = class WhatsAppConnection {
                         const contactInfo = await getContactInfo(telefonoEnvia) || (await createContact(pushName, telefonoEnvia));
                         const account = await getOrCreateConversation(contactInfo.id, this.carpeta)
 
-
                         let mensaje = ''
                         if (m.message.extendedTextMessage && m.message.extendedTextMessage.text) {
                             mensaje = m.message.extendedTextMessage.text;
@@ -93,6 +92,7 @@ module.exports = class WhatsAppConnection {
                         };
                         await sendMessageToChatWood(account.display_id, requestBody, this.puerto);
                     } else {
+
                         console.log('mensaje:', m)
                         const telefonoEnvia = m.key.remoteJid.split('@')[0]
                         const pushName = m.pushName
@@ -109,13 +109,16 @@ module.exports = class WhatsAppConnection {
                             mensaje = 'es un audio, no es posible transcribir'
                         } else {
                         }
+                        await getMessage(mensaje, { account_id: 1, inbox_id: 11, conversation_id: account.display_id })
+
                         let requestBody = {
                             content: mensaje,
                             message_type: "outgoing",
-                            private: false,
+                            private: true,
                             content_attributes: {}
                         }
                         await sendMessageToChatWood(account.display_id, requestBody, this.puerto);
+
 
 
                     }

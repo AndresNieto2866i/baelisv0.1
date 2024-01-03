@@ -7,7 +7,6 @@ const getInbox = async (name) => {
         const inboxesResponse = await fetch(url, {
             method: 'GET',
             headers: headers,
-            // Otros parámetros de la solicitud, como body, mode, etc.
         });
 
         if (!inboxesResponse.ok) {
@@ -29,8 +28,8 @@ const getInbox = async (name) => {
         console.error("Error en getInbox:", error.message);
     }
 };
-  
-  
+
+
 const getContactInfo = async (phoneNumber) => {
     const contactQuery = {
         text: 'SELECT * FROM contacts WHERE phone_number = $1',
@@ -65,65 +64,7 @@ const prepareMessage = async (text) => {
     }
 };
 
-// const getOrCreateConversation = async (contactId, puerto) => {
-//     try {
-//         let inbox = await getInbox(puerto);
-//         const url = API_CHATWOOD + 'api/v1/accounts/1/conversations?inbox_id=' + inbox.id;
-//         const response = await fetch(url, { method: 'GET', headers: headers });
-
-//         if (!response.ok) {
-//             throw new Error(`Error ${response.status}: ${response.statusText}`);
-//         }
-
-//         const data = await response.json();
-
-//         if (data.data && data.data.payload) {
-//             let contactos = data.data.payload;
-//             let contacto = findContact(contactos, contactId);
-
-//             if (!contacto) {
-//                 await createConversation(inbox.id, contactId);
-//                 // Después de crear la conversación, vuelve a consultar la API para buscar el contacto
-//                 const updatedData = await fetch(url, { method: 'GET', headers: headers });
-//                 const updatedContactos = (await updatedData.json()).data.payload;
-//                 contacto = findContact(updatedContactos, contactId);
-
-//             }
-//             return contacto
-            
-//         }
-//     } catch (error) {
-//         console.error('Error en getOrCreateConversation:', error.message);
-//     }
-// };
-
-// const findContact = (contactos, contactId) => {
-//     return contactos.find((c) => {
-//         // Puedes agregar lógica aquí para buscar el contacto específico si es necesario
-//         return c.meta.sender.id === contactId;
-//     });
-// };
-
-// const createConversation = async (inboxId, contactId) => {
-//     try {
-//         const urlCreate = API_CHATWOOD + 'api/v1/accounts/1/conversations';
-//         let requestBody = {
-//             inbox_id: inboxId,
-//             contact_id: contactId
-//         };
-
-//         const peticion = await fetch(urlCreate, { method: 'POST', headers: headers, body: JSON.stringify(requestBody) });
-
-//         if (!peticion.ok) {
-//             throw new Error(`Error ${peticion.status}: ${peticion.statusText}`);
-//         }
-
-//     } catch (error) {
-//         console.error('Error en createConversation:', error.message);
-//     }
-// };
-
-const getOrCreateConversation = async (contactId,puerto) => {
+const getOrCreateConversation = async (contactId, puerto) => {
     const inbox_id = await getInbox(puerto)
     const conversationQuery = {
         text: 'SELECT * FROM conversations WHERE contact_id = $1 LIMIT 1',
@@ -131,11 +72,11 @@ const getOrCreateConversation = async (contactId,puerto) => {
     };
 
     const conversationResult = await client.query(conversationQuery);
-     conversation = conversationResult.rows.length > 0 ? conversationResult.rows[0] : null;
+    conversation = conversationResult.rows.length > 0 ? conversationResult.rows[0] : null;
     if (!conversation) {
         console.log('no se encontró')
         const createConversationBody = {
-            inbox_id:inbox_id.channel_id,
+            inbox_id: inbox_id.channel_id,
             contact_id: contactId,
             status: 'open',
         };
@@ -152,7 +93,7 @@ const getOrCreateConversation = async (contactId,puerto) => {
         }
         conversation = await getOrCreateConversation(contactId, puerto);
         return conversation
-    }else{
+    } else {
 
         return conversation;
     }
@@ -181,6 +122,43 @@ const sendMessageToChatWood = async (conversationId, requestBody) => {
         throw error; // Puedes volver a lanzar el error si es necesario
     }
 };
+const formatDateTime = (date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+};
+const getMessage = async (content, { account_id, inbox_id, conversation_id }) => {
+    const currentDateTime = formatDateTime(new Date());
+    const fiveMinutesAgo = formatDateTime(new Date(new Date() - 5 * 60 * 1000));
+
+    let consulta = `
+        SELECT * FROM messages 
+        WHERE content = $1
+        AND account_id = $2
+        AND inbox_id = $3
+        AND conversation_id = $4
+        AND created_at BETWEEN $5 AND $6
+    `;
+    try {
+        const data = await client.query(consulta, [content, account_id, inbox_id, conversation_id, fiveMinutesAgo, currentDateTime]);
+
+        if (data.rows.length > 0) {
+            console.log("Hay resultados en los últimos cinco minutos.");
+        } else {
+            console.log("No hay resultados en los últimos cinco minutos.");
+        }
+    } catch (error) {
+        console.error("Error al ejecutar la consulta:", error);
+    }
+};
 
 
-module.exports = { sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact };
+
+
+module.exports = { sendMessageToChatWood, getOrCreateConversation, getContactInfo, prepareMessage, createContact, getMessage };

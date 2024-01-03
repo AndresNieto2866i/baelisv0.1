@@ -5,7 +5,7 @@ const { Client } = require('pg');
   user: 'chatwoot',
   host: 'localhost',
   database: 'chatwoot_production',
-  password: 'a1s13R85M086Tx2', // Incluye la contrase�a si es necesaria
+  password: 'P1l4spu3s', // Incluye la contrase�a si es necesaria
   port: 5432, // Puerto predeterminado para PostgreSQL
 });
 

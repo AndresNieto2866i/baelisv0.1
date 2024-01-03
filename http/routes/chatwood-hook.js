@@ -1,4 +1,5 @@
 
+const { Console } = require('console');
 const express = require('express')
 const router = express.Router()
 const chatWoodWook = async (req, res) => {
@@ -14,9 +15,9 @@ const chatWoodWook = async (req, res) => {
       res.send(null);
       return;
     } 
+    console.log('hola')
 
     if (body.content) { 
-      console.log(body)
       await sendMessageToUser(providerWs, body);
       res.send(body);
     }
@@ -38,6 +39,7 @@ const isPrivateMessage = (body) => {
 
 const sendMessageToUser = async (providerWs, body) => {
   const phone = (body.conversation.meta.sender.phone_number || '').replace('+', '');
+  console.log('hook')
   await providerWs.sendMessage(`${phone}@c.us`, { text: body.content });
 };
 
